@@ -14,9 +14,8 @@ requires-python = ">=3.9"
 
 dependencies = [
   "torch>=2.0",
-  "tensorflow>=2.12",
-  "numpy>=1.23",
-  "protobuf>=3.20,<5"
+  "tensorflow>=2.20",
+  "numpy>=1.23"
 ]
 
 [project.urls]
