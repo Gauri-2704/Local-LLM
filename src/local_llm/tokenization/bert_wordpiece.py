@@ -1,4 +1,3 @@
-# local_llm/tokenization/bert_wordpiece.py
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -18,13 +17,24 @@ SPECIAL_TOKENS = {
 
 
 def load_vocab(vocab_path: Path | str) -> Dict[str, int]:
+    """
+    Load a BERT-style vocabulary file.
+
+    - Ignores blank / whitespace-only lines.
+    - Indices are assigned by *non-empty* line order (0-based).
+    - Validates that required SPECIAL_TOKENS are present.
+    """
     vocab_path = Path(vocab_path)
     vocab: Dict[str, int] = {}
+    idx = 0
     with open(vocab_path, "r", encoding="utf-8") as f:
-        for i, line in enumerate(f):
-            tok = line.rstrip("\n")
-            if tok:
-                vocab[tok] = i
+        for line in f:
+            tok = line.strip()  # strip whitespace; skip truly blank lines
+            if not tok:
+                continue
+            vocab[tok] = idx
+            idx += 1
+
     required = [SPECIAL_TOKENS[k] for k in ("pad", "unk", "cls", "sep", "mask")]
     missing = [t for t in required if t not in vocab]
     if missing:
@@ -63,8 +73,18 @@ class BasicTokenizer:
         return [t for t in "".join(buff).split() if t]
 
     def tokenize(self, text: str) -> List[str]:
+        """
+        Tokenize a string into basic tokens.
+
+        - Empty string -> [].
+        - Non-string (e.g. None) -> raises AttributeError (tests enforce this).
+        """
+        if not isinstance(text, str):
+            # Tests expect AttributeError specifically for None
+            raise AttributeError("BasicTokenizer.tokenize expects a string input.")
         if not text:
             return []
+
         tokens: List[str] = []
         parts = self._prot_re.split(text)
         for part in parts:
@@ -79,7 +99,13 @@ class BasicTokenizer:
 
 class WordPieceTokenizer:
     """Greedy longest-match WordPiece over a BERT vocab."""
-    def __init__(self, vocab: Dict[str, int], unk_token: str = SPECIAL_TOKENS["unk"], max_input_chars_per_word: int = 100):
+
+    def __init__(
+        self,
+        vocab: Dict[str, int],
+        unk_token: str = SPECIAL_TOKENS["unk"],
+        max_input_chars_per_word: int = 100,
+    ):
         self.vocab = vocab
         self.unk = unk_token
         self.maxlen = max_input_chars_per_word
@@ -128,12 +154,17 @@ class BertInputEncoder:
     """
     Composes a BasicTokenizer + WordPieceTokenizer and adds [CLS]/[SEP] + padding.
     """
+
     def __init__(
         self,
         vocab: Dict[str, int],
         max_len: int,
         basic_tokenizer: BasicTokenizer | None = None,
     ):
+        if max_len < 2:
+            # Tests require this guard: must fit at least [CLS] and [SEP]
+            raise ValueError("max_len must be at least 2 to fit [CLS] and [SEP].")
+
         self.vocab = vocab
         self.max_len = max_len
         self.basic = basic_tokenizer or BasicTokenizer()
@@ -149,6 +180,7 @@ class BertInputEncoder:
         ids = self.wp.convert_tokens_to_ids(tokens)
 
         if len(ids) > self.max_len:
+            # ensure final token is SEP after truncation
             ids = ids[: self.max_len - 1] + [self.sep_id]
 
         attn = [1] * len(ids)

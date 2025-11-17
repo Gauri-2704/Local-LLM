@@ -330,16 +330,30 @@ def setup_bert_base(
 
     # 2) Ensure config.json is in assets_dir
     target_cfg = assets_dir / "config.json"
-    if target_cfg.exists() and not overwrite and target_cfg.resolve() != config_path:
-        raise FileExistsError(
-            f"Target config.json already exists: {target_cfg}\n"
-            "Use overwrite=True if you intend to replace it."
-        )
-    if target_cfg.resolve() != config_path:
-        shutil.copy2(config_path, target_cfg)
-        print(f"[setup] Copied config.json → {target_cfg}")
+    if target_cfg.exists():
+        # Already there
+        if target_cfg.resolve() != config_path:
+            # Different physical file
+            if mode_from_tf or overwrite:
+                # In TF mode, we always treat `config` as source-of-truth
+                # and overwrite whatever the converter may have written.
+                # In bin mode, allow overwrite=True to replace.
+                shutil.copy2(config_path, target_cfg)
+                print(f"[setup] Copied config → {target_cfg}")
+            else:
+                # Bin mode, overwrite=False, different file → refuse
+                raise FileExistsError(
+                    f"Target config.json already exists: {target_cfg}\n"
+                    "Use overwrite=True if you intend to replace it."
+                )
+        else:
+            # Same path, nothing to do
+            print(f"[setup] Reusing existing config at {target_cfg}")
     else:
-        print(f"[setup] Reusing existing config.json at {target_cfg}")
+        # No config yet, just copy
+        shutil.copy2(config_path, target_cfg)
+        print(f"[setup] Copied config → {target_cfg}")
+
 
     # 3) Ensure vocab.txt is in assets_dir
     target_vocab = assets_dir / "vocab.txt"
@@ -350,11 +364,10 @@ def setup_bert_base(
         )
     if target_vocab.resolve() != vocab_path:
         shutil.copy2(vocab_path, target_vocab)
-        print(f"[setup] Copied vocab.txt → {target_vocab}")
+        print(f"[setup] Copied vocab → {target_vocab}")
     else:
-        print(f"[setup] Reusing existing vocab.txt at {target_vocab}")
+        print(f"[setup] Reusing existing vocab at {target_vocab}")
 
-    print(f"[setup] BERT base assets ready at: {assets_dir}")
     return assets_dir
 
 
