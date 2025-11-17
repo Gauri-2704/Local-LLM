@@ -65,6 +65,8 @@ ACT2FN = {
     "new_gelu": torch.nn.GELU,  # left as-is to match your original implementation
 }
 
+
+
 # ---------------------------------------------------------------------------
 # Embeddings
 # ---------------------------------------------------------------------------
@@ -264,6 +266,51 @@ class BertModel(nn.Module):
         extended = (1.0 - extended) * -10000.0
         return extended
 
+    def set_finetune_policy(
+        self,
+        policy: str = "none",  # "none", "last_n", "full"
+        last_n: int = 0,
+        train_embeddings: bool = False,
+    ) -> None:
+        """
+        Apply a simple finetuning policy to encoder parameters.
+
+        - "none"  : encoder + embeddings are frozen
+        - "full"  : everything trainable
+        - "last_n": last N transformer layers trainable (embeddings frozen unless train_embeddings=True)
+        """
+        policy = policy.lower().strip()
+        if policy not in {"none", "last_n", "full"}:
+            raise ValueError(f"Unknown finetune policy: {policy}")
+
+        # Start by freezing everything in encoder + embeddings
+        for p in self.embeddings.parameters():
+            p.requires_grad = False
+        for layer in self.encoder.layer:
+            for p in layer.parameters():
+                p.requires_grad = False
+
+        if policy == "none":
+            return
+
+        if policy == "full":
+            for p in self.embeddings.parameters():
+                p.requires_grad = train_embeddings
+            for layer in self.encoder.layer:
+                for p in layer.parameters():
+                    p.requires_grad = True
+            return
+
+        if policy == "last_n":
+            n = max(0, min(last_n, len(self.encoder.layer)))
+            if train_embeddings:
+                for p in self.embeddings.parameters():
+                    p.requires_grad = True
+            for layer in self.encoder.layer[-n:]:
+                for p in layer.parameters():
+                    p.requires_grad = True
+            return
+    
     def forward(
         self,
         input_ids: torch.Tensor,

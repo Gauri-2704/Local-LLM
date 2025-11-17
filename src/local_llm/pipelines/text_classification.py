@@ -4,7 +4,7 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterable, List, Optional, Tuple, Dict
+from typing import Iterable, List, Optional, Tuple, Dict, Sequence
 
 import torch
 import torch.nn as nn
@@ -18,49 +18,90 @@ from ..tokenization.bert_wordpiece import (
     EncodeOutput,
 )
 
+@dataclass
+class ClassifierHeadConfig:
+    """
+    Simple, serializable description of the classifier head.
+
+    You can change this per run without touching package code.
+    """
+    hidden_sizes: Sequence[int] = (768,)   # MLP hidden layer sizes
+    dropouts: Sequence[float] = (0.15, 0.20)
+    use_layer_norm: bool = True
+    activation: str = "gelu"              # "gelu", "relu", "tanh"
 
 class BertClassifierHead(nn.Module):
     """
-    Lightweight MLP classifier head for BERT pooled outputs.
-    Mirrors your existing architecture but is reusable.
+    MLP classifier head for BERT pooled outputs, driven by a small config.
     """
-    def __init__(self, hidden_size: int, num_labels: int):
+    def __init__(
+        self,
+        hidden_size: int,
+        num_labels: int,
+        cfg: ClassifierHeadConfig | None = None,
+    ):
         super().__init__()
-        self.net = nn.Sequential(
-            nn.Dropout(p=0.15),
-            nn.Linear(hidden_size, 768),
-            nn.LayerNorm(768),
-            nn.GELU(),
-            nn.Dropout(p=0.20),
-            nn.Linear(768, num_labels),
-        )
+        cfg = cfg or ClassifierHeadConfig()
+
+        act_map = {
+            "gelu": nn.GELU,
+            "relu": nn.ReLU,
+            "tanh": nn.Tanh,
+        }
+        act_cls = act_map.get(cfg.activation.lower(), nn.GELU)
+
+        layers: list[nn.Module] = []
+        in_dim = hidden_size
+
+        # First dropout before the head
+        if cfg.dropouts:
+            layers.append(nn.Dropout(cfg.dropouts[0]))
+
+        # Hidden layers
+        for i, hdim in enumerate(cfg.hidden_sizes):
+            layers.append(nn.Linear(in_dim, hdim))
+            if cfg.use_layer_norm:
+                layers.append(nn.LayerNorm(hdim))
+            layers.append(act_cls())
+            # Optional extra dropout(s)
+            if i + 1 < len(cfg.dropouts):
+                layers.append(nn.Dropout(cfg.dropouts[i + 1]))
+            in_dim = hdim
+
+        # Final classifier layer
+        layers.append(nn.Linear(in_dim, num_labels))
+
+        self.net = nn.Sequential(*layers)
 
     def forward(self, pooled: torch.Tensor) -> torch.Tensor:
         return self.net(pooled)
 
-
 class BertTextClassifier(nn.Module):
-    """
-    Rough equivalent of `BertForSequenceClassification`:
-
-    - Wraps a `BertModel` plus a classifier head
-    - Can be constructed from a local asset directory produced by local-llm
-    - Supports CLS or mean pooling
-    """
     def __init__(
         self,
         bert: BertModel,
         num_labels: int,
         pooling: str = "cls",
+        head: nn.Module | None = None,
+        head_config: ClassifierHeadConfig | None = None,
     ):
         super().__init__()
         pooling = pooling.lower().strip()
         if pooling not in ("cls", "mean"):
             raise ValueError("pooling must be 'cls' or 'mean'")
+
         self.bert = bert
         self.num_labels = num_labels
         self.pooling = pooling
-        self.classifier = BertClassifierHead(bert.config.hidden_size, num_labels)
+
+        if head is not None:
+            self.classifier = head
+        else:
+            self.classifier = BertClassifierHead(
+                hidden_size=bert.config.hidden_size,
+                num_labels=num_labels,
+                cfg=head_config,
+            )
 
     @classmethod
     def from_pretrained(
@@ -69,6 +110,8 @@ class BertTextClassifier(nn.Module):
         num_labels: int,
         pooling: str = "cls",
         map_location: str | torch.device = "cpu",
+        head: nn.Module | None = None,
+        head_config: ClassifierHeadConfig | None = None,
     ) -> "BertTextClassifier":
         assets_dir = Path(assets_dir)
         cfg_path = assets_dir / "config.json"
@@ -90,7 +133,13 @@ class BertTextClassifier(nn.Module):
         sd = torch.load(weights_path, map_location=map_location)
         bert.load_state_dict(sd, strict=True)
 
-        model = cls(bert=bert, num_labels=num_labels, pooling=pooling)
+        model = cls(
+            bert=bert,
+            num_labels=num_labels,
+            pooling=pooling,
+            head=head, 
+            head_config=head_config,
+        )
         return model
 
     def save_pretrained(self, output_dir: str | Path) -> None:
