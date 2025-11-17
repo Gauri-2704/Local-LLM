@@ -3,20 +3,20 @@ requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "local_llm"
+name = "local-llm"
 version = "0.1.0"
 description = "Library to run open-source large language models (LLMs) stored locally."
 readme = "README.md"
 authors = [
-    { name = "Cameron Webster", email = "cameron.webster@nnsa.doe.gov" },
+  { name = "Cameron Webster", email = "cameron.webster@nnsa.doe.gov" },
 ]
 requires-python = ">=3.9"
 
 dependencies = [
-    ""torch>=2.0",
-    "tensorflow>=2.12",
-    "numpy>=1.23",
-    "protobuf>=3.20,<5",
+  "torch>=2.0",
+  "tensorflow>=2.12",
+  "numpy>=1.23",
+  "protobuf>=3.20,<5"
 ]
 
 [project.urls]
@@ -29,10 +29,8 @@ include-package-data = true
 where = ["src"]
 
 [tool.setuptools.package-data]
-# These patterns ensure BERT assets are included inside the installed package
-"bert_package" = [
-    "bert_config.json",
-    "vocab.txt",
-    "*.ckpt.*"
+"local_llm" = [
+  "bert_config.json",
+  "vocab.txt",
+  "*.ckpt.*"
 ]
-
