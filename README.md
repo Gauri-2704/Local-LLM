@@ -432,7 +432,7 @@ flowchart LR
     class C tensor;
     class B,D,E,F,G op;
     class ENC,MHA,FFN,AddNorm1,AddNorm2,E_in,E_out encdetail;
-
+    
 ```
 
 
