@@ -384,47 +384,63 @@ Supports:
 #### **BERT Model Architecture (Local-LLM Implementation)**
 
 ```mermaid
-flowchart LR
+flowchart TD
     %% =========================
     %% HIGH-LEVEL BERT PIPELINE
     %% =========================
 
     %% Stage 1: Text -> Tokens
-    A[Input text<br/>raw sentences] --> B[Tokenization<br/>basic tokenizer and WordPiece]
+    A[Input text<br/>raw sentences] --> 
+    B[Tokenization<br/>basic tokenizer and WordPiece]
 
     %% Stage 2: Tokens -> IDs & masks
-    B --> C[[input_ids<br/>token_type_ids<br/>attention_mask]]
+    B --> 
+    C[[IDs and masks<br/>input_ids<br/>token_type_ids<br/>attention_mask]]
 
     %% Stage 3: IDs -> Embeddings
-    C --> D[Embedding layer<br/>token, position, segment]
+    C --> 
+    D[Embedding layer<br/>token, position, segment]
 
-    %% Stage 4: Encoder stack (Layer 1 ... Layer N)
-    subgraph STACK["BERT encoder stack<br/>Transformer layer x N"]
+    %% Stage 4: Encoder stack (vertical)
+    D --> 
+    STACK
+
+    subgraph STACK["BERT encoder stack<br/>Transformer layer × N"]
         direction TB
-        L1["Layer 1"] --> L2["Layer 2"] --> Lmid["..."] --> LN["Layer N"]
+        L1["Layer 1"]
+        L2["Layer 2"]
+        Lmid["..."]
+        LN["Layer N"]
+        
+        L1 --> L2 --> Lmid --> LN
     end
 
-    D --> L1
-
     %% Stage 5: Pooling & classifier
-    LN --> F[Pooling<br/>CLS vector or mean]
-    F --> G[Classifier head<br/>dense layer and softmax]
-    G --> H[Predicted label]
+    LN --> 
+    F[Pooling<br/>CLS vector or mean]
+
+    F --> 
+    G[Classifier head<br/>dense layer and softmax]
+
+    G --> 
+    H[Predicted label]
 
     %% =====================================
     %% DETAIL: A SINGLE TRANSFORMER LAYER
     %% =====================================
-    subgraph ENC["Single BERT encoder layer (detail view)"]
+    subgraph ENC["Single Transformer layer (zoom-in)"]
         direction TB
-        E_in((hidden states in)) --> MHA[Multi-head self-attention]
-        MHA --> AddNorm1[Add and LayerNorm]
-        AddNorm1 --> FFN[Position-wise feed-forward]
-        FFN --> AddNorm2[Add and LayerNorm]
-        AddNorm2 --> E_out((hidden states out))
+        Ein((hidden states_in)) -->
+        MHA[Multi-head self-attention] -->
+        AddN1[Add & LayerNorm] -->
+        FFN[Position-wise feed-forward] -->
+        AddN2[Add & LayerNorm] -->
+        Eout((hidden states_out))
     end
 
-    %% Conceptual link: stack <-> single-layer detail
-    L2 -. "structure of each Transformer layer" .- ENC
+    %% Conceptual (non-execution) link
+    L2 -. "Each layer in the stack follows this structure" .- ENC
+
 
     %% ========== 
     %% STYLING 
@@ -436,8 +452,10 @@ flowchart LR
 
     class A,H data;
     class C tensor;
-    class B,D,L1,L2,Lmid,LN,F,G op;
-    class ENC,MHA,FFN,AddNorm1,AddNorm2,E_in,E_out encdetail;
+    class B,D,F,G op;
+    class STACK,L1,L2,Lmid,LN op;
+    class ENC,MHA,FFN,AddN1,AddN2,Ein,Eout encdetail;
+
 
 ```
 
