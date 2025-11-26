@@ -304,6 +304,41 @@ flowchart TD
     G --> H["Classifier head<br/>dropout + linear layers"]
     H --> I["Predicted label"]
 ```
+```mermaid
+flowchart TD
+    %% --- Tokenization ---
+    subgraph Tokenization
+        A["Input text"] --> B["Basic tokenizer<br/>lowercasing + punctuation split"];
+        B --> C["WordPiece tokenizer<br/>subword segmentation"];
+    end
+
+    %% --- IDs & masks ---
+    C --> D[[input_ids<br/>token_type_ids<br/>attention_mask]];
+
+    %% --- Embeddings & Encoder stack ---
+    D --> Emb["Embedding layer<br/>token + position + segment"];
+
+    subgraph Encoder_Stack ["BERT encoder (N layers)"]
+        direction LR
+        E1["Layer 1"] --> E2["Layer 2"] --> E3["..."] --> EN["Layer N"];
+    end
+
+    Emb --> E1;
+
+    %% --- Pooling & classifier ---
+    EN --> Pool["Pooling<br/>[CLS] token or mean pooling"];
+    Pool --> Head["Classifier head<br/>dropout + linear layer(s)"];
+    Head --> Y["Predicted label"];
+
+    %% --- Styling ---
+    classDef group fill:#f3f4ff,stroke:#4b5563,stroke-width:1px;
+    classDef op fill:#f9fafb,stroke:#4b5563,stroke-width:1px;
+    classDef tensor fill:#ecfdf5,stroke:#15803d,stroke-width:1px;
+
+    class Tokenization,Encoder_Stack group;
+    class A,B,C,Emb,E1,E2,E3,EN,Pool,Head,Y op;
+    class D tensor;
+```
 
 ---
 
