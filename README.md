@@ -391,26 +391,21 @@ flowchart LR
 
     %% Stage 1: Text -> Tokens
     A[Input text<br/>raw sentences] --> B[Tokenization<br/>basic tokenizer + WordPiece];
-    end 
-
+ 
     %% Stage 2: Tokens -> IDs & masks
     B --> C[[input_ids<br/>token_type_ids<br/>attention_mask]];
-    end
 
     %% Stage 3: IDs -> Embeddings
     C --> D[Embedding layer<br/>token + position + segment];
-    end
 
     %% Stage 4: Encoder stack
     D --> E[BERT encoder stack<br/>Transformer layer × N];
-    end
 
     %% Stage 5: Pooling & classifier
     E --> F[Pooling<br/>CLS vector or mean];
     F --> G[Classifier head<br/>dense layer + softmax];
     G --> H[Predicted label];
-    end
-    
+
     %% =====================================
     %% DETAIL: A SINGLE TRANSFORMER LAYER
     %% =====================================
@@ -421,7 +416,6 @@ flowchart LR
         AddNorm1 --> FFN[Position-wise feed-forward];
         FFN --> AddNorm2[Add & LayerNorm];
         AddNorm2 --> E_out((hidden states_out));
-    end
 
     %% Attach layer detail to the encoder stack
     E --- ENC;
