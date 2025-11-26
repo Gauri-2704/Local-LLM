@@ -422,7 +422,7 @@ It enables secure, reproducible, high-quality NLP—without HuggingFace, cloud A
 # **Maintainer**
 
 **Cameron Webster**
-National Nuclear Security Administration
+_National Nuclear Security Administration_
 [cameron.webster@nnsa.doe.gov](mailto:cameron.webster@nnsa.doe.gov)
 
 ---
