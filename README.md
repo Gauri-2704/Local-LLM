@@ -286,13 +286,13 @@ bert_model.ckpt.index
 
 Local-LLM converts these into a PyTorch-native format for offline use.
 
-# **BERT Model Architecture (Local-LLM Implementation)**
+### **BERT Model Architecture (Local-LLM Implementation)**
 
 ```mermaid
 flowchart TD
     A["Input text"] --> B["BasicTokenizer<br/>lowercasing, punctuation split"]
-    B --> C["WordPiece tokenizer<br/>greedy longest-match"]
-    C --> D[[ "input_ids<br/>token_type_ids<br/>attention_mask" ]]
+    B --> C["WordPiece tokenizer<br/>greedy longest-match"];
+    C --> D[[input_ids<br/>token_type_ids<br/>attention_mask]]
 
     D --> E["Embeddings layer<br/>word + position + token type"]
     E --> F["BERT encoder (N layers)"]; F --> F1["Layer 1<br/>multi-head attention + FFN"]
@@ -404,8 +404,6 @@ Supports:
 
 All steps needed to finetune BERT on labeled data are provided:
 
-
-# **Local-LLM Fine-Tuning Pipeline**
 ```mermaid
 flowchart LR
     A["Raw CSV data<br/>text columns + label column"] --> B["prepare_label_mapping()<br/>convert labels to IDs"]
