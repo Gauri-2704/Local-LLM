@@ -385,54 +385,39 @@ Supports:
 
 ```mermaid
 flowchart LR
-    %% =========================
-    %% HIGH-LEVEL BERT PIPELINE
-    %% =========================
+    %% High-level BERT pipeline
+    A[Input text<br/>raw sentences] --> B[Tokenization<br/>basic tokenizer and WordPiece]
+    B --> C[[IDs and masks<br/>input_ids<br/>token_type_ids<br/>attention_mask]]
+    C --> D[Embedding layer<br/>token, position, segment]
+    D --> E[Encoder stack<br/>Transformer layer x N]
+    E --> F[Pooling<br/>CLS vector or mean]
+    F --> G[Classifier head<br/>dense layer and softmax]
+    G --> H[Predicted label]
 
-    %% Stage 1: Text -> Tokens
-    A[Input text<br/>raw sentence(s)] --> B[Tokenization<br/>basic tokenizer + WordPiece];
-
-    %% Stage 2: Tokens -> IDs & masks
-    B --> C[[input_ids<br/>token_type_ids<br/>attention_mask]];
-
-    %% Stage 3: IDs -> Embeddings
-    C --> D[Embedding layer<br/>token + position + segment];
-
-    %% Stage 4: Encoder stack
-    D --> E[BERT encoder stack<br/>Transformer layer × N];
-
-    %% Stage 5: Pooling & classifier
-    E --> F[Pooling<br/>[CLS] vector or mean];
-    F --> G[Classifier head<br/>dense layer + softmax];
-    G --> H[Predicted label];
-
-    %% =====================================
-    %% DETAIL: A SINGLE TRANSFORMER LAYER
-    %% =====================================
-    subgraph ENC["Single BERT encoder layer"]
+    %% Detail: one encoder layer
+    subgraph EncoderLayer ["Transformer encoder layer"]
         direction TB
-        E_in((hidden states_in)) --> MHA[Multi-head self-attention];
-        MHA --> AddNorm1[Add & LayerNorm];
-        AddNorm1 --> FFN[Position-wise feed-forward];
-        FFN --> AddNorm2[Add & LayerNorm];
-        AddNorm2 --> E_out((hidden states_out));
+        EL_in((Hidden states in)) --> MHA[Multi head self attention]
+        MHA --> AddNorm1[Add and LayerNorm]
+        AddNorm1 --> FFN[Feed forward network]
+        FFN --> AddNorm2[Add and LayerNorm]
+        AddNorm2 --> EL_out((Hidden states out))
     end
 
-    %% Attach layer detail to the encoder stack
-    E --- ENC;
+    %% Connect stack to layer detail
+    E --- EncoderLayer
 
-    %% ==========
-    %% STYLING
-    %% ==========
-    classDef data fill:#e0f2fe,stroke:#0369a1,stroke-width:1px,color:#0f172a;
-    classDef tensor fill:#ecfdf5,stroke:#15803d,stroke-width:1px,color:#022c22;
-    classDef op fill:#f9fafb,stroke:#4b5563,stroke-width:1px,color:#111827;
-    classDef encdetail fill:#fefce8,stroke:#a16207,stroke-width:1px,color:#713f12;
+    %% Styling
+    classDef data fill:#e0f2fe,stroke:#0369a1,color:#0f172a;
+    classDef tensor fill:#ecfdf5,stroke:#15803d,color:#022c22;
+    classDef op fill:#f9fafb,stroke:#4b5563,color:#111827;
+    classDef layer fill:#fefce8,stroke:#a16207,color:#713f12;
 
     class A,H data;
     class C tensor;
     class B,D,E,F,G op;
-    class ENC,MHA,FFN,AddNorm1,AddNorm2,E_in,E_out encdetail;
+    class MHA,FFN,AddNorm1,AddNorm2,EL_in,EL_out layer;
+
 
 ```
 
