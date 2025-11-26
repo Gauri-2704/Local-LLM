@@ -385,7 +385,10 @@ Supports:
 
 ```mermaid
 flowchart LR
-    %% High-level BERT pipeline
+    %% =========================
+    %% HIGH-LEVEL BERT PIPELINE
+    %% =========================
+
     A[Input text<br/>raw sentences] --> B[Tokenization<br/>basic tokenizer and WordPiece]
     B --> C[[IDs and masks<br/>input_ids<br/>token_type_ids<br/>attention_mask]]
     C --> D[Embedding layer<br/>token, position, segment]
@@ -394,7 +397,10 @@ flowchart LR
     F --> G[Classifier head<br/>dense layer and softmax]
     G --> H[Predicted label]
 
-    %% Detail: one encoder layer
+    %% =====================================
+    %% DETAIL: A SINGLE TRANSFORMER LAYER
+    %% =====================================
+
     subgraph EncoderLayer ["Transformer encoder layer"]
         direction TB
         EL_in((Hidden states in)) --> MHA[Multi head self attention]
