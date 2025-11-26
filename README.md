@@ -290,21 +290,19 @@ Local-LLM converts these into a PyTorch-native format for offline use.
 
 ```mermaid
 flowchart TD
-    A[Input text] --> B[BasicTokenizer<br/>lowercasing, punctuation split]
-    B --> C[WordPiece tokenizer<br/>greedy longest-match]
-    C --> D[[input_ids<br/>token_type_ids<br/>attention_mask]]
+    A["Input text"] --> B["BasicTokenizer<br/>lowercasing, punctuation split"]
+    B --> C["WordPiece tokenizer<br/>greedy longest-match"]
+    C --> D[[ "input_ids<br/>token_type_ids<br/>attention_mask" ]]
 
-    D --> E[Embeddings layer<br/>word + position + token type]
-    E --> F[BERT encoder (N layers)]
+    D --> E["Embeddings layer<br/>word + position + token type"]
+    E --> F["BERT encoder (N layers)"]; F --> F1["Layer 1<br/>multi-head attention + FFN"]
+    F1 --> F2["Layer 2"]
+    F2 --> F3["..."]
+    F3 --> F12["Layer N"]
 
-    F --> F1[Layer 1<br/>multi-head attention + FFN]
-    F1 --> F2[Layer 2]
-    F2 --> F3[...]
-    F3 --> F12[Layer N]
-
-    F12 --> G[Pooling<br/>CLS token or mean pooling]
-    G --> H[Classifier head<br/>dropout + linear layers]
-    H --> I[Predicted label]
+    F12 --> G["Pooling<br/>CLS token or mean pooling"]
+    G --> H["Classifier head<br/>dropout + linear layers"]
+    H --> I["Predicted label"]
 ```
 
 ---
@@ -410,23 +408,24 @@ All steps needed to finetune BERT on labeled data are provided:
 # **Local-LLM Fine-Tuning Pipeline**
 ```mermaid
 flowchart LR
-    A[Raw CSV data<br/>text columns + label column] --> B[prepare_label_mapping()<br/>convert labels to IDs]
-    B --> C[concat_text()<br/>join selected text columns]
-    C --> D[stratified_split_indices()<br/>train / val / test indices]
+    A["Raw CSV data<br/>text columns + label column"] --> B["prepare_label_mapping()<br/>convert labels to IDs"]
+    B --> C["concat_text()<br/>join selected text columns"]
+    C --> D["stratified_split_indices()<br/>train / val / test indices"]
 
-    D --> E[build_input_encoder()<br/>load vocab and tokenizer]
-    E --> F[encode_splits()<br/>encode each split to tensors]
+    D --> E["build_input_encoder()<br/>load vocab and tokenizer"]
+    E --> F["encode_splits()<br/>encode each split to tensors"]
 
-    F --> G[build_dataloaders()<br/>PyTorch DataLoaders for each split]
+    F --> G["build_dataloaders()<br/>PyTorch DataLoaders for each split"]
 
-    G --> H[build_bert_text_classifier_from_assets()<br/>load BERT + classifier head<br/>set finetune policy]
+    G --> H["build_bert_text_classifier_from_assets()<br/>load BERT + classifier head<br/>set finetune policy"]
 
-    H --> I[train_text_classifier()<br/>train on train loader<br/>evaluate on val loader<br/>track best state]
+    H --> I["train_text_classifier()<br/>train on train loader<br/>evaluate on val loader<br/>track best state"]
 
-    I --> J[save_finetuned_classifier()<br/>save classifier_full.pt<br/>save pytorch_model_finetuned.bin<br/>write finetune_meta.json]
+    I --> J["save_finetuned_classifier()<br/>save classifier_full.pt<br/>save pytorch_model_finetuned.bin<br/>write finetune_meta.json"]
 
-    J --> K[evaluate_on_split()<br/>run inference on test tensors]
-    K --> L[export_predictions_csv()<br/>write predictions + confidence to CSV]
+    J --> K["evaluate_on_split()<br/>run inference on test tensors"]
+    K --> L["export_predictions_csv()<br/>write predictions + confidence to CSV"]
+
 ```
 
 
