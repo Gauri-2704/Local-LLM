@@ -11,6 +11,7 @@ import pandas as pd
 import torch
 import torch.nn as nn
 from torch.utils.data import Dataset, DataLoader
+from sqlalchemy import text
 
 from ..models.bert import BertConfig, BertModel
 from ..pipelines.text_classification import (
@@ -881,3 +882,29 @@ def export_unlabeled_predictions_csv(
     path = cfg.output_dir / filename
     merged_df.to_csv(path, index=False)
     return path
+
+def is_connection_alive(engine) -> bool:
+    """
+    Check if database connection is alive and callable
+    SQLalchemy and psycopg2
+    """
+    try:
+        with engine.connect() as conn:
+            conn.execute(text("SELECT 1"))
+        return True
+    except Exception as e:
+        print("Connection failed:", e)
+        return False
+
+def split_for_review(
+    merged_df: pd.DataFrame, 
+    conf_col: str, 
+    threshold: float = 0.8
+) -> pd.DataFrame:
+    """
+    Split merged predictions by prediction confidence and store
+    in separate dataframe: auto, and for review. 
+    """
+    auto_df = merged_df[merged_df[conf_col] >= threshold].copy()
+    review_df = merged_df[merged_df[conf_col] < threshold].copy()
+    return auto_df, review_df
