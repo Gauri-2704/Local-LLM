@@ -429,13 +429,15 @@ _National Nuclear Security Administration_
 
 # Citations
 
+```python
 @article{devlin2018bert,
   title={BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding},
   author={Devlin, Jacob and Chang, Ming-Wei and Lee, Kenton and Toutanova, Kristina},
   journal={arXiv preprint arXiv:1810.04805},
   year={2018}
 }
-
+```
+```python
 @misc{vaswani2023attentionneed,
       title={Attention Is All You Need}, 
       author={Ashish Vaswani and Noam Shazeer and Niki Parmar and Jakob Uszkoreit and Llion Jones and Aidan N. Gomez and Lukasz Kaiser and Illia Polosukhin},
@@ -445,7 +447,8 @@ _National Nuclear Security Administration_
       primaryClass={cs.CL},
       url={https://arxiv.org/abs/1706.03762}, 
 }
-
+```
+```python
 @misc{hendrycks2023gaussianerrorlinearunits,
       title={Gaussian Error Linear Units (GELUs)}, 
       author={Dan Hendrycks and Kevin Gimpel},
@@ -455,5 +458,5 @@ _National Nuclear Security Administration_
       primaryClass={cs.LG},
       url={https://arxiv.org/abs/1606.08415}, 
 }
-
+```
 ---
