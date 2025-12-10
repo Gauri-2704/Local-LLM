@@ -399,3 +399,74 @@ def interactive_setup_bert(
         output_dir=output_dir,
         overwrite=False,
     )
+
+
+# ---------------------------------------------------------------------------
+# Backwards-compatible aliases (v1 API)
+# ---------------------------------------------------------------------------
+
+def setup_bert_base(
+    *,
+    checkpoints: str | Path | None = None,
+    model_params: str | Path | None = None,
+    vocab: str | Path,
+    config: str | Path,
+    output_dir: str | Path | None = None,
+    overwrite: bool = False,
+) -> Path:
+    """
+    Backwards-compatible alias for `setup_bert`.
+
+    Kept so older code and tests using `setup_bert_base(...)`
+    continue to work unchanged.
+    """
+    return setup_bert(
+        checkpoints=checkpoints,
+        model_params=model_params,
+        vocab=vocab,
+        config=config,
+        output_dir=output_dir,
+        overwrite=overwrite,
+    )
+
+
+def interactive_setup_bert(
+    output_dir: str | Path = "./assets/bert-base-local",
+) -> Path:
+    """
+    New interactive helper around `setup_bert_base`.
+
+    Prompts for:
+        - TF checkpoint directory or prefix
+        - bert_config.json path
+        - vocab.txt path
+    """
+    output_dir = Path(output_dir)
+
+    print("=== local-llm: BERT base setup (TF → PyTorch, fully offline) ===")
+    cp_raw = input(
+        "Path to TF checkpoint directory or prefix "
+        "(e.g. .../uncased_L-12_H-768_A-12 or .../bert_model.ckpt): "
+    ).strip()
+    cfg_path = input("Path to bert_config.json: ").strip()
+    vocab_path = input("Path to vocab.txt: ").strip()
+
+    # NOTE: We deliberately call setup_bert_base here so tests that
+    # monkeypatch conv.setup_bert_base still see the call.
+    return setup_bert_base(
+        checkpoints=cp_raw,
+        model_params=None,
+        vocab=vocab_path,
+        config=cfg_path,
+        output_dir=output_dir,
+        overwrite=False,
+    )
+
+
+def interactive_setup_bert_base(
+    output_dir: str | Path = "./assets/bert-base-local",
+) -> Path:
+    """
+    Backwards-compatible alias for `interactive_setup_bert`.
+    """
+    return interactive_setup_bert(output_dir=output_dir)

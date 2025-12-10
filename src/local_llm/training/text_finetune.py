@@ -75,6 +75,10 @@ class FineTuneConfig:
         if not isinstance(cfg.output_dir, Path):
             cfg.output_dir = Path(cfg.output_dir)
         cfg.output_dir.mkdir(parents=True, exist_ok=True)
+
+        # IMPORTANT: convert nested dict back to ClassifierHeadConfig
+        if isinstance(cfg.head_config, dict):
+            cfg.head_config = ClassifierHeadConfig(**cfg.head_config)
         return cfg
 
 
@@ -588,8 +592,16 @@ def save_finetuned_classifier(
 
     # Append BERT config + head config + tokenizer setting into meta
     bert_cfg_dict = model.bert.config.__dict__
-    head_cfg_dict = cfg.head_config.__dict__
-    
+
+    # robust extraction of head_config
+    hc = cfg.head_config
+    if isinstance(hc, ClassifierHeadConfig):
+        head_cfg_dict = asdict(hc)
+    elif isinstance(hc, dict):
+        head_cfg_dict = hc
+    else:
+        head_cfg_dict = dict(hc.__dict__)
+
     meta = {
         "num_labels": len(label_to_id),
         "label_to_id": label_to_id,
