@@ -25,7 +25,7 @@ The library provides:
 
 Local-LLM requires the standard TensorFlow BERT releases from Google:
 
-➡ **Google Research BERT Repository**:
+**Google Research BERT Repository**:
 [https://github.com/google-research/bert](https://github.com/google-research/bert)
 
 You may download any of the official pretrained models, such as:
@@ -49,7 +49,7 @@ Local-LLM converts these into a PyTorch-native format for offline use.
 
 # **Features**
 
-### **✔ 1. Offline BERT Checkpoint Conversion**
+### **1. Offline BERT Checkpoint Conversion**
 
 Convert official TensorFlow BERT checkpoints into a PyTorch `state_dict`:
 
@@ -76,7 +76,7 @@ All future operations (tokenization, training, inference) require only these thr
 
 ---
 
-### **✔ 2. Dependency-Free WordPiece Tokenizer **
+### **2. Dependency-Free WordPiece Tokenizer **
 
 Local-LLM includes a complete BERT tokenizer:
 
@@ -102,7 +102,7 @@ The implementation is fully deterministic and thoroughly tested.
 
 ---
 
-### **✔ 3. BERT Model (Pure PyTorch, No HF Dependencies)**
+### **3. BERT Model (Pure PyTorch, No HF Dependencies)**
 
 ```python
 from local_llm.models.bert import BertConfig, BertModel
@@ -120,7 +120,7 @@ The architecture matches the original Google Research implementation, supporting
 
 ---
 
-### **✔ 4. Built-In Sequence Classifier**
+### **4. Built-In Sequence Classifier**
 
 ```python
 from local_llm.pipelines.text_classification import BertTextClassifier
@@ -216,7 +216,7 @@ flowchart TD
     class ENC,MHA,FFN,AddN1,AddN2,Ein,Eout encdetail;
 ```
 
-### **✔ 5. Full Fine-Tuning Pipeline**
+### **5. Full Fine-Tuning Pipeline**
 
 All steps needed to finetune BERT on labeled data are provided:
 
@@ -276,7 +276,7 @@ flowchart LR
 ```
 
 
-### **✔ 6. Inference Pipeline for Unlabeled Data**
+### **6. Inference Pipeline for Unlabeled Data**
 
 The library also includes a dedicated inference helper:
 
@@ -297,7 +297,7 @@ Produces predicted label IDs, labels, and confidence scores.
 
 ---
 
-### **✔ 7. Fully Tested**
+### **7. Fully Tested**
 
 Tests cover:
 
